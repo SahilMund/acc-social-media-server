@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 
-const MONGODB_URI = "mongodb+srv://sahil:abc@cluster0.cy5ihkf.mongodb.net/InstaClone";
+dotenv.config();
 
-mongoose.connect(MONGODB_URI);
+mongoose.connect(process.env.MONGO_URI);
 
 const db = mongoose.connection;
 

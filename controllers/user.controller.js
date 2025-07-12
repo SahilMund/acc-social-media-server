@@ -14,6 +14,7 @@ module.exports.signup = async (req, res) => {
   //
   try {
     const { name, email, password } = req.body;
+    console.log("d", req.body);
     const newUser = await User.insertOne({
       name,
       email,
@@ -22,9 +23,9 @@ module.exports.signup = async (req, res) => {
 
     const token = jwt.sign(
       {
-        email: user.email,
-        name: user.name,
-        id: user._id,
+        email: newUser.email,
+        name: newUser.name,
+        id: newUser._id,
       },
       SECRET_KEY,
       { expiresIn: "7d" }
@@ -78,6 +79,25 @@ module.exports.signin = async (req, res) => {
       },
       success: true,
       message: "USER LoggedIn successfully !!",
+    });
+  } catch (error) {
+    console.log("error", error.message);
+    res.send({
+      data: error.message,
+    });
+  }
+};
+
+module.exports.loggedInUserInfo = async (req, res) => {
+  try {
+    const user = await User.findById(req?.user?.id);
+
+    res.status(200).send({
+      data: {
+        user,
+      },
+      success: true,
+      message: "USER Details fetched successfully !!",
     });
   } catch (error) {
     console.log("error", error.message);
