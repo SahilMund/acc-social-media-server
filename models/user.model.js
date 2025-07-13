@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
 const bcrypt = require("bcrypt");
 
-
 const userSchema = new Schema(
   {
     name: {
@@ -30,5 +29,5 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-const Users = model("Users", userSchema);
-module.exports = Users;
+const User = model("User", userSchema);
+module.exports = User;

@@ -6,9 +6,18 @@ const {
   uploadToDiskStorage,
   multipleUploadToDiskStorage,
   uploadToCloudinary,
+  createPost,
+  editPost,
+  deletePost,
+  getPostById,
+  getAllPosts,
+  getAllLoggedInUserPosts,
+  likePostById,
+  disLikePostById,
+  postStatsById,
+  getFeeds,
 } = require("../controllers/post.controller");
-
-// const isLoggedIn = require("../middlewares/isLoggedIn"); // Adjust path accordingly
+const isLoggedIn = require("../middlewares/isLoggedIn"); // Adjust path accordingly
 
 router.post("/upload/disk", upload.single("image"), uploadToDiskStorage);
 router.post(
@@ -19,5 +28,20 @@ router.post(
 
 //cloudinary uploads
 router.post("/upload", upload.single("image"), uploadToCloudinary);
+router.post("/create", isLoggedIn, createPost);
+router.put("/update/:id", isLoggedIn, editPost);
+router.delete("/delete/:id", isLoggedIn, deletePost);
+router.get("/view/:id", isLoggedIn, getPostById);
+router.get("/my-posts", isLoggedIn, getAllLoggedInUserPosts);
+router.get("/all-posts", isLoggedIn, getAllPosts);
+
+// like and dislike
+router.put("/like/:id", isLoggedIn, likePostById);
+router.put("/unlike/:id", isLoggedIn, disLikePostById);
+
+// feeds api
+
+router.get("/stats/:postId", isLoggedIn, postStatsById);
+router.get("/feed", isLoggedIn, getFeeds);
 
 module.exports = router;

@@ -2,7 +2,9 @@ const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const SECRET_KEY = "jwtprviatesecrekey-123-abc";
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 module.exports.signup = async (req, res) => {
   //   1. Get the data
@@ -27,7 +29,7 @@ module.exports.signup = async (req, res) => {
         name: newUser.name,
         id: newUser._id,
       },
-      SECRET_KEY,
+      process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );
 
@@ -68,7 +70,7 @@ module.exports.signin = async (req, res) => {
         name: user.name,
         id: user._id,
       },
-      SECRET_KEY,
+      process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );
 

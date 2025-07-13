@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
-const SECRET_KEY = "jwtprviatesecrekey-123-abc";
 const User = require("../models/user.model");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const isLoggedIn = async (req, res, next) => {
   try {
@@ -14,7 +16,7 @@ const isLoggedIn = async (req, res, next) => {
 
     const token = bearerToken.split(" ")[1];
 
-    const decodedToken = jwt.verify(token, SECRET_KEY);
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
     console.log("decodedToken", decodedToken);
 

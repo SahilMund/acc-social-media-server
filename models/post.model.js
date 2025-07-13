@@ -15,16 +15,21 @@ const postSchema = new Schema(
     },
     image: String,
     imageId: String,
+    gallery: [
+      {
+        type: String,
+      },
+    ],
+    likes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    likesCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
 
-// postSchema.pre("save", async function (next) {
-//   const salt = await bcrypt.genSalt(15);
-//   const hashedPassword = await bcrypt.hash(this.password, salt);
-//   this.password = hashedPassword;
-//   next();
-// });
-
-const Posts = model("Posts", postSchema);
-module.exports = Posts;
+const Post = model("Post", postSchema);
+module.exports = Post;
