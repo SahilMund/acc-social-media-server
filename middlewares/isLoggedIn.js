@@ -18,14 +18,13 @@ const isLoggedIn = async (req, res, next) => {
 
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-    console.log("decodedToken", decodedToken);
+    const user = await User.findById(decodedToken?.id);
 
     req.user = {
       id: decodedToken?.id,
       email: decodedToken?.email,
+      role: user.role ?? "personal",
     };
-
-    const user = await User.findById(decodedToken?.id);
 
     if (!user) {
       return res.status(500).send({

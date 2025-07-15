@@ -9,14 +9,19 @@ const userSchema = new Schema(
       required: [true, "Name should be a required field"],
     },
     email: {
-      //TODO: Implement regex validation in email field
       type: String,
       required: [true, "email should be a required field"],
       unique: [true, "email should be a unique field"],
+      //can use match over here for regex pattern match
     },
     password: {
       type: String,
       required: [true, "password should be a required field"],
+    },
+    role: {
+      type: String,
+      enum: ["personal", "creator"],
+      default: "personal",
     },
   },
   { timestamps: true }
