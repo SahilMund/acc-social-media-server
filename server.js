@@ -1,11 +1,46 @@
 const express = require("express");
 require("./config/mongoose");
+const passport = require("passport");
+const session = require("express-session");
+const dotenv = require("dotenv");
+const cors = require("cors");
 
+dotenv.config();
 const app = express();
 
 const PORT = 8888;
 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false,
+      maxAge: 1000 * 60 * 60 * 24, // 1day
+    },
+  })
+);
+
 app.use(express.json());
+app.use(passport.initialize());
+app.use(passport.session());
+
+const allowedOrigins = ["localhost:5173"]; //add your local host FE url, deployed FE URL
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        cb(null, true);
+      } else {
+        cb(new Error("NOT allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.get("/", (req, res) => {
   res.status(200).send({
     message: `Server is running on PORT - ${PORT}...`,

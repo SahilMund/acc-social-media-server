@@ -23,6 +23,12 @@ const userSchema = new Schema(
       enum: ["personal", "creator"],
       default: "personal",
     },
+    isOAuth: {
+      type: Boolean,
+      default:false
+    },
+    authProvider: String,
+    profilePic: String
   },
   { timestamps: true }
 );
