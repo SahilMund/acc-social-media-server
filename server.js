@@ -83,6 +83,8 @@ app.listen(PORT, () =>
   console.log(`✌ - Server is running on PORT - ${PORT}...`)
 );
 
+module.exports = app;
+
 /*
 
 find() - to get all the reocords
