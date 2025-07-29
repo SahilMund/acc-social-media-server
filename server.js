@@ -1,14 +1,23 @@
 const express = require("express");
-require("./config/mongoose");
 const passport = require("passport");
 const session = require("express-session");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const cron = require("node-cron");
+const Post = require("./models/post.model");
+const cookieParser = require("cookie-parser");
 
 dotenv.config();
+
+require("./config/mongoose");
+
 const app = express();
 
 const PORT = 8888;
+
+if (process.env.NODE_ENV === "production") {
+  console.log = () => {};
+}
 
 app.use(
   session({
@@ -22,24 +31,45 @@ app.use(
   })
 );
 
-app.use(express.json());
-app.use(passport.initialize());
-app.use(passport.session());
-
-const allowedOrigins = ["localhost:5173"]; //add your local host FE url, deployed FE URL
+// const allowedOrigins = ["http://localhost:5173"]; //add your local host FE url, deployed FE URL
 
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        cb(null, true);
-      } else {
-        cb(new Error("NOT allowed by CORS"));
-      }
+      cb(null, origin);
+      // if (!origin || allowedOrigins.includes(origin)) {
+      //   cb(null, true);
+      // } else {
+      //   cb(new Error("NOT allowed by CORS"));
+      // }
     },
     credentials: true,
   })
 );
+
+app.use(express.json());
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(cookieParser());
+
+//CRON SCHEDULAR -- 9AM every monday
+// cron.schedule("* * * * *", async () => {
+//   console.log("[CRON JOB] - schedular checking for the posts");
+//   const nowUTC = new Date();
+//   const offset = 5.5 * 60 * 60 * 1000; //5:30hr
+//   const nowIST = new Date(nowUTC.getTime() + offset);
+
+//   const foundPosts = await Post.find({
+//     isScheduled: true,
+//     scheduledTime: { $lte: nowIST },
+//   });
+
+//   for (let post of foundPosts) {
+//     post.isScheduled = false;
+//     await post.save();
+//     console.log("[CRON JOB] - scheduled post - " + post._id);
+//   }
+// });
 
 app.get("/", (req, res) => {
   res.status(200).send({

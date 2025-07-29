@@ -3,12 +3,7 @@ const { Strategy: GoogleStrategy } = require("passport-google-oauth20");
 
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
-const dotenv = require("dotenv");
 const crypto = require("crypto");
-
-dotenv.config();
-
-console.log(process.env.GOOGLE_CLIENT_ID);
 
 const strategyOptions = {
   clientID: process.env.GOOGLE_CLIENT_ID,
@@ -20,11 +15,8 @@ const verify = async (accessToken, refreshToken, profile, done) => {
   try {
     let user = await User.findOne({ email: profile.emails[0].value });
 
-    console.log("profile", profile);
-    console.log("user", user);
-
     if (!user) {
-      //singup flow
+      //sign up flow
       const salt = await bcrypt.genSalt(10);
 
       const randomPassword = crypto.randomBytes(20).toString("hex");
@@ -48,8 +40,10 @@ const verify = async (accessToken, refreshToken, profile, done) => {
 };
 
 passport.use(new GoogleStrategy(strategyOptions, verify));
-
+// will be called only once when the user is loggedin ---> store the user info in the session
 passport.serializeUser((user, done) => done(null, user.id));
+
+// called on every request to retreview user info from the session
 passport.deserializeUser(async (id, done) => {
   const user = await User.findById(id);
   done(null, user);

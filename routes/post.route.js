@@ -16,6 +16,7 @@ const {
   disLikePostById,
   postStatsById,
   getFeeds,
+  getPostsAdditional
 } = require("../controllers/post.controller");
 const isLoggedIn = require("../middlewares/isLoggedIn"); // Adjust path accordingly
 
@@ -43,5 +44,6 @@ router.put("/unlike/:id", isLoggedIn, disLikePostById);
 
 router.get("/stats/:postId", isLoggedIn, postStatsById);
 router.get("/feed", isLoggedIn, getFeeds);
+router.get("/search-pagination-sorting", isLoggedIn, getPostsAdditional);
 
 module.exports = router;

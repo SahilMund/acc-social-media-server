@@ -25,10 +25,13 @@ const userSchema = new Schema(
     },
     isOAuth: {
       type: Boolean,
-      default:false
+      default: false,
     },
     authProvider: String,
-    profilePic: String
+    profilePic: String,
+    followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    followings: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
@@ -42,3 +45,4 @@ userSchema.pre("save", async function (next) {
 
 const User = model("User", userSchema);
 module.exports = User;
+

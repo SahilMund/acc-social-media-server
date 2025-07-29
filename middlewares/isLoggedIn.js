@@ -7,6 +7,7 @@ dotenv.config();
 const isLoggedIn = async (req, res, next) => {
   try {
     const bearerToken = req?.headers?.authorization;
+    //cookie based atuh = const token = req.cookies.token;
 
     if (!bearerToken) {
       return res.status(500).send({
@@ -18,7 +19,13 @@ const isLoggedIn = async (req, res, next) => {
 
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-    const user = await User.findById(decodedToken?.id);
+    const user = await User.findOne({ _id: decodedToken?.id, isActive: true });
+
+    if (!user) {
+      return res.status(404).send({
+        data: "User Not found",
+      });
+    }
 
     req.user = {
       id: decodedToken?.id,

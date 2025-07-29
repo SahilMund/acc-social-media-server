@@ -1,10 +1,9 @@
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const sendResponse = require("../utils/response");
 
-const dotenv = require("dotenv");
-
-dotenv.config();
+const AUTH_TYPE = "";
 
 module.exports.signup = async (req, res) => {
   //   1. Get the data
@@ -54,9 +53,13 @@ module.exports.signup = async (req, res) => {
 module.exports.signin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email, isActive: true });
 
-    const isMatch = await bcrypt.compare(password, user.password ?? "");
+    console.log("user", user);
+
+    const isMatch = await bcrypt.compare(password, user?.password ?? "");
+
+    console.log("isMatch", isMatch);
 
     if (!user || !isMatch) {
       return res.send({
@@ -77,6 +80,16 @@ module.exports.signin = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    if (AUTH_TYPE === "cookie-based-auth") {
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000, //1 day;
+      });
+
+      res.session.user = user;
+    }
+
     res.send({
       data: {
         token,
@@ -95,7 +108,7 @@ module.exports.signin = async (req, res) => {
 
 module.exports.loggedInUserInfo = async (req, res) => {
   try {
-    const user = await User.findById(req?.user?.id);
+    const user = await User.findOne({ _id: req?.user?.id, isActive: true });
 
     res.status(200).send({
       data: {
@@ -114,7 +127,7 @@ module.exports.loggedInUserInfo = async (req, res) => {
 
 module.exports.getAllUser = async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const users = await User.findOne({ isActive: true }).select("-password");
 
     res.status(200).send({
       data: {
@@ -136,7 +149,7 @@ module.exports.updateUserInfo = async (req, res) => {
     const userId = req.user.id;
     const { name } = req.body;
 
-    const user = await User.findById(userId);
+    const user = await User.findOne({ _id: userId, isActive: true });
 
     if (!user) {
       return res.status(404).send({
@@ -162,4 +175,73 @@ module.exports.updateUserInfo = async (req, res) => {
       data: error.message,
     });
   }
+};
+
+module.exports.followUser = async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findOne({ _id: req?.user?.id, isActive: true });
+
+  if (!user) {
+    return res.status(404).send({
+      data: null,
+      success: false,
+      message: "No user found",
+    });
+  }
+
+  await User.findByIdAndUpdate(req.user.id, {
+    $addToSet: { following: userId },
+  });
+  await User.findByIdAndUpdate(userId, {
+    $addToSet: { followers: req.user.id },
+  });
+
+  sendResponse(res, true, "User followed successfully", null);
+};
+
+module.exports.UnfollowUser = async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findOne({ _id: req?.user?.id, isActive: true });
+  if (!user) {
+    return res.status(404).send({
+      data: null,
+      success: false,
+      message: "No user found",
+    });
+  }
+
+  await User.findByIdAndUpdate(req.user.id, {
+    $pull: { followings: userId },
+  });
+  await User.findByIdAndUpdate(userId, {
+    $pull: { followers: req.user.id },
+  });
+
+  sendResponse(res, true, "User followed successfully", null);
+};
+
+module.exports.getFollowers = async (req, res) => {
+  const user = awaitUser
+    .findOne({ _id: req?.user?.id, isActive: true })
+    .populate("followers", "name email");
+
+  sendResponse(res, true, "success", user);
+};
+
+module.exports.getFollowings = async (req, res) => {
+  const user = awaitUser
+    .findOne({ _id: req?.user?.id, isActive: true })
+    .populate("followings", "name email");
+
+  sendResponse(res, true, "success", user);
+};
+
+module.exports.deleteUser = async (req, res) => {
+  const user = await User.findById(req.user.id);
+
+  user.isActive = false;
+
+  await user.save();
+
+  sendResponse(res, true, "User Deleted Successfully", user);
 };

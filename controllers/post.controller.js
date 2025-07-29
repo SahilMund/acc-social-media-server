@@ -35,13 +35,15 @@ module.exports.uploadToCloudinary = async (req, res) => {
 
 module.exports.createPost = async (req, res) => {
   try {
-    const { text, image, imageId } = req.body;
+    const { text, image, imageId, isScheduled, scheduledTime } = req.body;
 
     const newPost = new Post({
       text,
       image,
       imageId,
       user: req.user.id,
+      isScheduled,
+      scheduledTime,
     });
 
     const savedPost = await newPost.save();
@@ -155,7 +157,10 @@ module.exports.getPostById = async (req, res) => {
 
 module.exports.getAllLoggedInUserPosts = async (req, res) => {
   try {
-    const foundPosts = await Post.find({ user: req.user.id });
+    const foundPosts = await Post.find({
+      user: req.user.id,
+      isScheduled: false,
+    });
 
     if (!foundPosts || foundPosts.length === 0) {
       return sendResponse(res, false, "No Post not found", null);
@@ -174,13 +179,16 @@ module.exports.getAllLoggedInUserPosts = async (req, res) => {
 
 module.exports.getAllPosts = async (req, res) => {
   try {
-    const foundPosts = await Post.find();
+    const foundPosts = await Post.find({ isScheduled: false });
 
     if (!foundPosts || foundPosts.length === 0) {
-      return sendResponse(res, false, "No Post found", null);
+      return sendResponse(res, false, "No Post found", new Date());
     }
 
-    sendResponse(res, true, "All Posts Fetched Successfully!", foundPosts);
+    sendResponse(res, true, "All Posts Fetched Successfully!", {
+      foundPosts,
+      nowIST,
+    });
   } catch (err) {
     sendResponse(res, false, err?.message, null);
   }
@@ -276,6 +284,41 @@ module.exports.getFeeds = async (req, res) => {
       return sendResponse(res, false, "No Post found", null);
     }
     sendResponse(res, true, "Stats fetched successfully", post);
+  } catch (err) {
+    sendResponse(res, false, err?.message, null);
+  }
+};
+
+// sorting, searching and pagination
+
+module.exports.getPostsAdditional = async (req, res) => {
+  try {
+    const {
+      searchTerm,
+      sortBy = "latest", // 'latest, oldest, popular
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    const query = {
+      text: { $regex: searchTerm, $options: "i" },
+    };
+
+    const sortOptions = {
+      latest: { createdAt: -1 },
+      oldest: { createdAt: 1 },
+      popular: { likesCount: -1 },
+    };
+
+    const post = await Post.find(query)
+      .sort(sortOptions[sortBy])
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    if (!post) {
+      return sendResponse(res, false, "No Post found", null);
+    }
+    sendResponse(res, true, "Posts fetched successfully", post);
   } catch (err) {
     sendResponse(res, false, err?.message, null);
   }
